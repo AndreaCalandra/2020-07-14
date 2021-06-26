@@ -6,8 +6,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import it.polito.tdp.PremierLeague.model.Action;
 import it.polito.tdp.PremierLeague.model.Match;
+import it.polito.tdp.PremierLeague.model.Partita;
 import it.polito.tdp.PremierLeague.model.Player;
 import it.polito.tdp.PremierLeague.model.Team;
 
@@ -55,6 +58,25 @@ public class PremierLeagueDAO {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
+		}
+	}
+	
+	public void mapTeams(Map<Integer, Team> idMap){
+		String sql = "SELECT * FROM Teams";
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				Team team = new Team(res.getInt("TeamID"), res.getString("Name"));
+				idMap.put(res.getInt("TeamID"), team);
+			}
+			conn.close();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -112,4 +134,31 @@ public class PremierLeagueDAO {
 		}
 	}
 	
+	public List<Partita> listaPartite (Map<Integer, Team> idMap) {
+		String sql = "SELECT m.TeamHomeID AS casa, m.TeamAwayID AS trasf, m.ResultOfTeamHome AS risultato "
+				+ "FROM matches m "
+				+ "ORDER BY m.TeamHomeID, m.TeamAwayID";
+		List<Partita> partite = new ArrayList<>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				Partita p = new Partita(idMap.get(res.getInt("casa")), idMap.get(res.getInt("trasf")), res.getInt("risultato"));
+				partite.add(p);
+
+			}
+			conn.close();
+			return partite;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+	
+	}
+ 	
 }
